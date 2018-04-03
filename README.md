@@ -1,3 +1,3 @@
-Lambda calculus interpreter that no one knew they wanted. 
+The lambda calculus interpreter that nobody asked for. 
 
 (-- UNDER CONSTRUCTION --)

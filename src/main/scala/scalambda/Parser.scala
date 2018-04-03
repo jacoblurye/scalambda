@@ -6,6 +6,8 @@ import scala.util.parsing.combinator.RegexParsers
  * Given a text file, yield the corresponding lambda calculus AST.
  */
 class LambdaCalcParser extends RegexParsers {
+
+    /** Grammer definition */
     def exp: Parser[LExp] = app | "(" ~> exp <~ ")" | lam | lvar
     def app: Parser[LExp] = ("(" ~> exp <~ ")" | lvar) ~ exp ^^ {
         case e1 ~ e2 => LApp(e1, e2)
@@ -16,6 +18,7 @@ class LambdaCalcParser extends RegexParsers {
     def lvar: Parser[LExp] = id ^^ {LVar(_)}
     def id:  Parser[String] = "[a-zA-Z_][a-zA-Z0-9_]*".r
 
+    /** Outputs lambda calc AST given a string adhering to grammar */
     def parse(expression: String) = {
         parseAll(exp, expression) match {
             case Success(tree, _) => tree

@@ -30,4 +30,7 @@ class LambdaCalcParserSpec extends FlatSpec with Matchers {
             )
         )
     }
+    it should "convert ASTs back to correct strings" in {
+
+    }
 }
