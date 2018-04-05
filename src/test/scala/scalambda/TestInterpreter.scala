@@ -19,7 +19,6 @@ class InterpreterSpec extends FlatSpec with Matchers {
     i
   }
   it should "reduce expressions if possible" in {
-  // assert(pp (reduce (p "(/x.(/z.z) (/x.x)) (/y.y)")) = "(/z.z) (/x.x)");
     i.reduce(p("(/x.x) y")) should be (Some(p("y")))
     i.reduce(p("y (/x.x)")) should be (None)
     i.reduce(p("(/x.x) (/y.y)")) should be (Some(p("/y.y")))
