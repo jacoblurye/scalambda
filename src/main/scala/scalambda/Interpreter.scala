@@ -18,8 +18,8 @@ class LambdaCalcInterpreter extends LambdaCalcParser {
 
   /** Finds the set of free variables in a lambda calculus expression. */
   def findFVs(exp: LExp,
-                      fvs: Set[String] = Set.empty,
-                      cvs: Set[String] = Set.empty): Set[String] = {
+              fvs: Set[String] = Set.empty,
+              cvs: Set[String] = Set.empty): Set[String] = {
     exp match {
       case LVar(x) => if (cvs(x)) Set.empty else fvs + x
       case LLam(x, e) => findFVs(e, fvs, cvs + x)
