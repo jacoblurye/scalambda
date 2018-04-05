@@ -47,13 +47,16 @@ class LambdaCalcInterpreter {
     }
   }
 
-  /** Takes one small step according to the lambda calc semantics */
+  /** Takes one small step according to the CBV lambda calc semantics */
   def reduce(exp: LExp): Option[LExp] = {
     exp match {
       case LVar(_) => None
       case LLam(x, e) => reduce(e).map(LLam(x, _))
       case LApp(e1, e2) => e1 match {
-        case LLam(x, t1) => Some(subst(t1, x, e2))
+        case LLam(x, t1) => reduce(e2) match {
+          case Some(e2r) => Some(LApp(e1, e2r))
+          case None => Some(subst(t1, x, e2))
+        }
         case _ => reduce(e1) match {
           case Some(e1r) => Some(LApp(e1r, e2))
           case None => reduce(e2).map(LApp(e1, _))
@@ -61,4 +64,6 @@ class LambdaCalcInterpreter {
       }
     }
   }
+
+  /** Reduce an expression to its normal form (i.e., evaluate it) */
 }
