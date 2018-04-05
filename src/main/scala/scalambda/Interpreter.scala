@@ -33,12 +33,10 @@ class LambdaCalcInterpreter {
       case LVar(s) => if (x == s) e2 else e1
       case LApp(t1, t2) => LApp(subst(t1, x, e2), subst(t2, x, e2))
       case LLam(s, e) =>
-        if (s == x) 
-          e2
+        if (s == x) e1
         else  {
           val e2FVs = findFVs(e2)
-          if (!e2FVs(s)) 
-            LLam(s, subst(e, x, e2))
+          if (!e2FVs(s)) LLam(s, subst(e, x, e2))
           else {
             val eFVs = findFVs(e)
             val usedVars = (eFVs union e2FVs) + s
@@ -50,29 +48,15 @@ class LambdaCalcInterpreter {
   }
 
   /** Takes one small step according to the lambda calc semantics */
-  def reduce(exp: LExp): Option[Lexp] = {
+  def reduce(exp: LExp): Option[LExp] = {
     exp match {
       case LVar(_) => None
-      case LLam(x, e) => {
-        reduce(e) match {
-          case Some(e1) => Some(LLam(x, e1))
-          case None => None
-        }
-      }
-      case LApp(e1, e2) => {
-        e1 match {
-          case LLam(x, t1) => Some(subst(t1, x, e2))
-          case _ => {
-            reduce(e1) match {
-              case Some(e1r) => Some(LApp(e1r, e2))
-              case None => {
-                reduce(e2) match {
-                  case Some(e2r) => Some(LApp(e1, e2r))
-                  case None => None
-                }
-              }
-            }
-          }
+      case LLam(x, e) => reduce(e).map(LLam(x, _))
+      case LApp(e1, e2) => e1 match {
+        case LLam(x, t1) => Some(subst(t1, x, e2))
+        case _ => reduce(e1) match {
+          case Some(e1r) => Some(LApp(e1r, e2))
+          case None => reduce(e2).map(LApp(e1, _))
         }
       }
     }

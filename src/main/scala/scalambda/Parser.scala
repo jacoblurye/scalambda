@@ -12,8 +12,8 @@ class LambdaCalcParser extends RegexParsers {
     def app: Parser[LExp] = ("(" ~> exp <~ ")" | lvar) ~ exp ^^ {
         case e1 ~ e2 => LApp(e1, e2)
     }
-    def lam: Parser[LExp] = "\\" ~ id ~ "." ~ exp ^^ {
-        case "\\" ~ x ~ "." ~ e => LLam(x, e)
+    def lam: Parser[LExp] = "/" ~ id ~ "." ~ exp ^^ {
+        case "/" ~ x ~ "." ~ e => LLam(x, e)
     }
     def lvar: Parser[LExp] = id ^^ {LVar(_)}
     def id:  Parser[String] = "[a-zA-Z_][a-zA-Z0-9_]*".r
