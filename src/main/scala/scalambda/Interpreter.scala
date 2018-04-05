@@ -3,10 +3,10 @@ package scalambda
 /**
   * Evaluate a given LExp instance accord to call-by-value semantics.
   */
-class LambdaCalcInterpreter {
+class LambdaCalcInterpreter extends LambdaCalcParser {
 
   /** Generates unused variable id given set of used ids */
-  def genId(used: Set[String]) = {
+  private def genId(used: Set[String]) = {
     var suff: Int = 0
     var name = "x" + suff
     while (used(name)) {
@@ -47,23 +47,33 @@ class LambdaCalcInterpreter {
     }
   }
 
-  /** Takes one small step according to the CBV lambda calc semantics */
+  /** Takes one small step according to CBV lambda calc semantics */
   def reduce(exp: LExp): Option[LExp] = {
     exp match {
       case LVar(_) => None
       case LLam(x, e) => reduce(e).map(LLam(x, _))
-      case LApp(e1, e2) => e1 match {
-        case LLam(x, t1) => reduce(e2) match {
-          case Some(e2r) => Some(LApp(e1, e2r))
-          case None => Some(subst(t1, x, e2))
-        }
-        case _ => reduce(e1) match {
-          case Some(e1r) => Some(LApp(e1r, e2))
-          case None => reduce(e2).map(LApp(e1, _))
+      case LApp(e1, e2) => reduce(e2) match {
+        case Some(re2) => Some(LApp(e1, re2))
+        case None => e1 match {
+          case LLam(x, t) => e2 match {
+            case LApp(hd, tl) => Some(LApp(subst(t, x, hd), tl))
+            case _ => Some(subst(t, x, e2))
+          }
+          case _ => reduce(e1).map(LApp(_, e2))
         }
       }
     }
   }
 
-  /** Reduce an expression to its normal form (i.e., evaluate it) */
+  /** Reduce an expression to its normal form */
+  def normal_form(exp: LExp): LExp = {
+    reduce(exp) match {
+      case Some(exp1) => normal_form(exp1)
+      case None => exp
+    }
+  }
+
+  def eval(s: String): LExp = {
+    normal_form(parse(s))
+  }
 }
