@@ -26,11 +26,11 @@ class InterpreterSpec extends FlatSpec with Matchers {
     i.reduce(p("(/x.(/z.z) x) (/y.y)")) should be (Some(p("(/z.z) (/y.y)")))
     i.reduce(p("(/x.(/z.z) (/x.x)) (/y.y)")) should be (Some(p("(/z.z) (/x.x)")))
   }
-  it should "reduce expressions to their normal forms" in {
-    i.eval("/x./y.x y") should be (p("/x./y.x y"))
-    i.eval("(/x./y.x y) z1 z2") should be (p("z1 z2"))
-    i.eval("(/x./y.y x) z1 z2") should be (p("z2 z1"))
-    i.eval("(/x./y./z.y) z1 z2 z3") should be (p("z2"))
-    i.eval("(/x./y.y x) z1 (/z2.z2 z2)") should be (p("z1 z1"))
+  it should "evaluate expressions completely" in {
+    i.eval("/x./y.x y") should be ("/x./y.x y")
+    i.eval("(/x./y.x y) z1 z2") should be ("z1 z2")
+    i.eval("(/x./y.y x) z1 z2") should be ("z2 z1")
+    i.eval("(/x./y./z.y) z1 z2 z3") should be ("z2")
+    i.eval("(/x./y.y x) z1 (/z2.z2 z2)") should be ("z1 z1")
   }
 }

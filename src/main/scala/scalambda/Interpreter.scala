@@ -67,7 +67,7 @@ class LambdaCalcInterpreter extends LambdaCalcParser {
     }
   }
 
-  def eval(s: String): LExp = {
-    normal_form(parse(s))
+  def eval(s: String): String = {
+    revparse(normal_form(parse(s)))
   }
 }

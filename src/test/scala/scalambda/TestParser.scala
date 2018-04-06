@@ -35,5 +35,7 @@ class LambdaCalcParserSpec extends FlatSpec with Matchers {
         p(rp(LVar("x"))) should be (LVar("x"))
         p(rp(LLam("x", LVar("x")))) should be (LLam("x", LVar("x")))
         p(rp(LApp(LVar("x"), LVar("y")))) should be (LApp(LVar("x"), LVar("y")))
+        p(rp(LApp(LApp(LVar("x"), LVar("y")), LLam("x", LVar("x"))))) should be
+            (LApp(LApp(LVar("x"), LVar("y")), LLam("x", LVar("x"))))
     }
 }
