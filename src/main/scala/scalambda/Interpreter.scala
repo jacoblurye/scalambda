@@ -28,17 +28,14 @@ class LambdaCalcInterpreter extends LambdaCalcParser {
     e1 match {
       case LVar(s) => if (x == s) e2 else e1
       case LApp(t1, t2) => LApp(subst(t1, x, e2), subst(t2, x, e2))
-      case LLam(s, e) =>
-        if (s == x) e1
-        else  {
-          val e2FVs = findFVs(e2)
-          if (!e2FVs(s)) LLam(s, subst(e, x, e2))
-          else {
-            val eFVs = findFVs(e)
-            val fvar = genId()
-            LLam(fvar, subst(subst(e, s, LVar(fvar)), x, e2))
-          }
+      case LLam(s, e) => if (s == x) e1 else {
+        if (!findFVs(e2)(s)) {
+          LLam(s, subst(e, x, e2))
+        } else {
+          val fvar = genId()
+          LLam(fvar, subst(subst(e, s, LVar(fvar)), x, e2))
         }
+      }
     }
   }
 
