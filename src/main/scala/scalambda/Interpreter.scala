@@ -5,15 +5,11 @@ package scalambda
   */
 class LambdaCalcInterpreter extends LambdaCalcParser {
 
-  /** Generates unused variable id given set of used ids */
-  private def genId(used: Set[String]) = {
-    var suff: Int = 0
-    var name = "x" + suff
-    while (used(name)) {
-      suff += 1
-      name = "x" + suff
-    }
-    name
+  /** Generates unused variable id */
+  private var fresh_id = -1;
+  private def genId() = {
+    fresh_id += 1
+    "$x" + fresh_id
   }
 
   /** Finds the set of free variables in a lambda calculus expression. */
@@ -39,9 +35,8 @@ class LambdaCalcInterpreter extends LambdaCalcParser {
           if (!e2FVs(s)) LLam(s, subst(e, x, e2))
           else {
             val eFVs = findFVs(e)
-            val usedVars = (eFVs union e2FVs) + s
-            val freshVar = genId(usedVars)
-            LLam(freshVar, subst(subst(e, s, LVar(freshVar)), x, e2))
+            val fvar = genId()
+            LLam(fvar, subst(subst(e, s, LVar(fvar)), x, e2))
           }
         }
     }
@@ -50,8 +45,7 @@ class LambdaCalcInterpreter extends LambdaCalcParser {
   /** Takes one small step according to CBV lambda calc semantics */
   def reduce(exp: LExp): Option[LExp] = {
     exp match {
-      case LVar(_) => None
-      case LLam(x, e) => reduce(e).map(LLam(x, _))
+      case LVar(_) | LLam(_,_) => None
       case LApp(e1, e2) => reduce(e2) match {
         case Some(re2) => Some(LApp(e1, re2))
         case None => e1 match {

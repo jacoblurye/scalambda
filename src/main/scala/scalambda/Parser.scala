@@ -19,10 +19,22 @@ class LambdaCalcParser extends RegexParsers {
     def id:  Parser[String] = "[a-zA-Z_][a-zA-Z0-9_]*".r
 
     /** Outputs lambda calc AST given a string adhering to grammar */
-    def parse(expression: String) = {
+    def parse(expression: String): LExp = {
         parseAll(exp, expression) match {
             case Success(tree, _) => tree
             case e: NoSuccess => throw new IllegalArgumentException(e.toString())
+        }
+    }
+
+    /** Outputs valid string given AST */
+    def revparse(exp: LExp): String = {
+        exp match {
+            case LVar(x) => x
+            case LLam(x, e) => "/" + x + "." + revparse(e)
+            case LApp(e1, e2) => e1 match {
+                case LApp(_,_) => "(" + revparse(e1) + ") " + revparse(e2)
+                case _ => revparse(e1) + " " + revparse(e2)
+            }
         }
     }
 }
