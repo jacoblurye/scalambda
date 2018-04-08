@@ -8,7 +8,10 @@ import scala.util.parsing.combinator.RegexParsers
 class LambdaCalcParser extends RegexParsers {
 
     /** Grammer definition */
-    def exp: Parser[LExp] = app | "(" ~> exp <~ ")" | lam | lvar
+    def exp: Parser[LExp] = app | "(" ~> exp <~ ")" | lam | lvar | let
+    def let: Parser[LExp] = "let" ~ id ~ "=" ~ exp ~ "in" ~ exp ^^ {
+        case "let" ~ x ~ "=" ~ e1 ~ "in" ~ e2 => LLet(x, e1, e2)
+    }
     def app: Parser[LExp] = ("(" ~> exp <~ ")" | lvar) ~ exp ^^ {
         case e1 ~ e2 => LApp(e1, e2)
     }
@@ -35,6 +38,8 @@ class LambdaCalcParser extends RegexParsers {
                 case LApp(_,_) => "(" + revparse(e1) + ") " + revparse(e2)
                 case _ => revparse(e1) + " " + revparse(e2)
             }
+            case LLet(x, e1, e2) => 
+                "let " + x + " = " + revparse(e1) + " in " + revparse(e2)
         }
     }
 }

@@ -1,7 +1,7 @@
 package scalambda
 
 /**
-  * Evaluate a given LExp instance accord to call-by-value semantics.
+  * A call-by-value interpreter for the lambda calculus.
   */
 class LambdaCalcInterpreter extends LambdaCalcParser {
 
@@ -64,6 +64,7 @@ class LambdaCalcInterpreter extends LambdaCalcParser {
     }
   }
 
+  /** Fully evaluate an input string */
   def eval(s: String): String = {
     revparse(normal_form(parse(s)))
   }
