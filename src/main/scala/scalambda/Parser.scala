@@ -8,8 +8,8 @@ import scala.util.parsing.combinator.RegexParsers
 class LambdaCalcParser extends RegexParsers {
 
     /** Grammer definition */
-    def exp: Parser[LExp] = app | "(" ~> exp <~ ")" | lam | lvar | let
-    def let: Parser[LExp] = "let" ~ id ~ "=" ~ exp ~ "in" ~ exp ^^ {
+    def exp: Parser[LExp] = app | "(" ~> exp <~ ")" | letexp | lam | lvar
+    def letexp: Parser[LExp] = "let" ~ id ~ "=" ~ exp ~ "in" ~ exp ^^ {
         case "let" ~ x ~ "=" ~ e1 ~ "in" ~ e2 => LLet(x, e1, e2)
     }
     def app: Parser[LExp] = ("(" ~> exp <~ ")" | lvar) ~ exp ^^ {
@@ -19,7 +19,16 @@ class LambdaCalcParser extends RegexParsers {
         case "/" ~ x ~ "." ~ e => LLam(x, e)
     }
     def lvar: Parser[LExp] = id ^^ {LVar(_)}
-    def id:  Parser[String] = "[a-zA-Z_][a-zA-Z0-9_]*".r
+
+    def idRegex: Parser[String] = "[a-zA-Z_][a-zA-Z0-9_]*".r
+    def reserved = Set("let", "in")
+    def id: Parser[String] = Parser(input =>
+      idRegex(input).filterWithError(
+        !reserved.contains(_),
+        resword => s"Cannot use keyword $resword as identifier",
+        input
+      )
+    )
 
     /** Outputs lambda calc AST given a string adhering to grammar */
     def parse(expression: String): LExp = {

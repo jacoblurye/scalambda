@@ -20,6 +20,7 @@ class LambdaCalcInterpreter extends LambdaCalcParser {
       case LVar(x) => if (cvs(x)) Set.empty else fvs + x
       case LLam(x, e) => findFVs(e, fvs, cvs + x)
       case LApp(e1, e2) => findFVs(e1, fvs, cvs) union findFVs(e2, fvs, cvs)
+      case LLet(x, e1, e2) => findFVs(LApp(LLam(x, e2), e1), fvs, cvs)
     }
   }
 
@@ -28,6 +29,7 @@ class LambdaCalcInterpreter extends LambdaCalcParser {
     e1 match {
       case LVar(s) => if (x == s) e2 else e1
       case LApp(t1, t2) => LApp(subst(t1, x, e2), subst(t2, x, e2))
+      case LLet(x, e1, e2) => subst(LApp(LLam(x, e2), e1), x, e2)
       case LLam(s, e) => if (s == x) e1 else {
         if (!findFVs(e2)(s)) {
           LLam(s, subst(e, x, e2))
@@ -43,6 +45,7 @@ class LambdaCalcInterpreter extends LambdaCalcParser {
   def reduce(exp: LExp): Option[LExp] = {
     exp match {
       case LVar(_) | LLam(_,_) => None
+      case LLet(x, e1, e2) => reduce(LApp(LLam(x, e2), e1))
       case LApp(e1, e2) => reduce(e2) match {
         case Some(re2) => Some(LApp(e1, re2))
         case None => e1 match {

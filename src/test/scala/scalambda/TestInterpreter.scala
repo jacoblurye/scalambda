@@ -16,7 +16,6 @@ class InterpreterSpec extends FlatSpec with Matchers {
     i.subst(LLam("x", z), "z", y) should be (LLam("x", y))
     i.subst(LApp(z, LLam("x", z)), "z", y) should be (LApp(y, LLam("x", y)))
     i.subst(LApp(LLam("x", z), z), "z", y) should be (LApp(LLam("x", y), y))
-    i
   }
   it should "reduce expressions one small-step further if possible" in {
     i.reduce(p("(/x.x) y")) should be (Some(p("y")))
@@ -32,5 +31,6 @@ class InterpreterSpec extends FlatSpec with Matchers {
     i.eval("(/x./y.y x) z1 z2") should be ("z2 z1")
     i.eval("(/x./y./z.y) z1 z2 z3") should be ("z2")
     i.eval("(/x./y.y x) z1 (/z2.z2 z2)") should be ("z1 z1")
+    i.eval("let x = /y.y in x z") should be ("z")
   }
 }

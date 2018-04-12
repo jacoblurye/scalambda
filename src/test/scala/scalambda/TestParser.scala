@@ -22,6 +22,11 @@ class LambdaCalcParserSpec extends FlatSpec with Matchers {
     it should "parse simple lambda functions" in {
         p("/x. x") should be (LLam("x", LVar("x")))
     }
+    it should "parse simple let expressions" in {
+        p("let x = /y.y in x") should be (LLet("x", LLam("y", LVar("y")), LVar("x")))
+        p("let x = y in let z = q in x z") should be 
+            (LLet("x", LVar("y"), LLet("z", LVar("q"), LApp(LVar("x"), LVar("z")))))
+    }
     it should "parse complex expressions" in {
         p("/x./y. x y") should be (LLam("x", LLam("y", LApp(LVar("x"), LVar("y")))))
         p("(/x.(/y. x y) (/z.z) x) /x.(/y. x y) (/z.z) x") should be (
