@@ -32,5 +32,7 @@ class InterpreterSpec extends FlatSpec with Matchers {
     i.eval("(/x./y./z.y) z1 z2 z3") should be ("z2")
     i.eval("(/x./y.y x) z1 (/z2.z2 z2)") should be ("z1 z1")
     i.eval("let x = /y.y in x z") should be ("z")
+    i.eval("let plus = /m./n./f./x.m f (n f x) in let one = /f./x.f x in plus one one") should be
+      ("/f./x.f (f x)")
   }
 }
