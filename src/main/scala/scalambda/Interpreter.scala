@@ -7,7 +7,7 @@ class LambdaCalcInterpreter extends LambdaCalcParser {
 
   /** Generates unused variable id */
   private var fresh_id = -1;
-  private def genId() = {
+  def genId = {
     fresh_id += 1
     "$x" + fresh_id
   }
@@ -34,7 +34,7 @@ class LambdaCalcInterpreter extends LambdaCalcParser {
         if (!findFVs(e2)(s)) {
           LLam(s, subst(e, x, e2))
         } else {
-          val fvar = genId()
+          val fvar = genId
           LLam(fvar, subst(subst(e, s, LVar(fvar)), x, e2))
         }
       }
@@ -47,16 +47,13 @@ class LambdaCalcInterpreter extends LambdaCalcParser {
       case LVar(_) => None
       case LLam(x, t) => reduce(t).map(LLam(x, _))
       case LLet(x, e1, e2) => reduce(LApp(LLam(x, e2), e1))
-      case LApp(e1, e2) => reduce(e1) match {
-        case Some(re1) => Some(LApp(re1, e2))
-        case None => reduce(e2) match {
-          case Some(re2) => Some(LApp(e1, re2))
-          case None => e1 match {
-            case LLam(x, t) => e2 match {
-              case LApp(hd, tl) => Some(LApp(subst(t, x, hd), tl))
-              case _ => Some(subst(t, x, e2))
-            }
-            case _ => None
+      case LApp(e1, e2) => e1 match {
+        case LLam(x, t) => Some(subst(t, x, e2))
+        case _ => reduce(e1) match {
+          case Some(re1) => Some(LApp(re1, e2))
+          case None => reduce(e2) match {
+            case Some(re2) => Some(LApp(e1, re2))
+            case None => None
           }
         }
       }

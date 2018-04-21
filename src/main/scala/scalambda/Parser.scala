@@ -54,8 +54,8 @@ class LambdaCalcParser extends RegexParsers {
         exp match {
             case LVar(x) => x
             case LLam(x, e) => "/" + x + "." + revparse(e)
-            case LApp(e1, e2) => e1 match {
-                case LApp(_,_) => "(" + revparse(e1) + ") " + revparse(e2)
+            case LApp(e1, e2) => e2 match {
+                case LApp(_,_) => revparse(e1) + " (" + revparse(e2) + ")"
                 case _ => revparse(e1) + " " + revparse(e2)
             }
             case LLet(x, e1, e2) => 

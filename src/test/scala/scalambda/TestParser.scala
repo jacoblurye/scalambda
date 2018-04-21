@@ -30,7 +30,6 @@ class LambdaCalcParserSpec extends FlatSpec with Matchers {
     }
     it should "parse complex expressions" in {
         p("/x./y. x y") should be (LLam("x", LLam("y", LApp(LVar("x"), LVar("y")))))
-        println(rp(p("(/x.(/y. x y) (/z.z) x) /x.(/y. x y) (/z.z) x"))); 
         p("(/x.(/y. x y) (/z.z) x) /x.(/y. x y) (/z.z) x") should be (
             LApp(
                 LLam("x", LApp(LApp(LLam("y", LApp(LVar("x"), LVar("y"))), LLam("z", LVar("z"))), LVar("x"))),
