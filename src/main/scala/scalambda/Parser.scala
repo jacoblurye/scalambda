@@ -8,20 +8,31 @@ import scala.util.parsing.combinator.RegexParsers
 class LambdaCalcParser extends RegexParsers {
 
     /** Grammer definition */
-    def exp: Parser[LExp] = app | "(" ~> exp <~ ")" | letexp | lam | lvar
+    def exp: Parser[LExp] =  letexp | app | parenexp | lam | lvar
+    def parenexp: Parser[LExp] = "(" ~> exp <~ ")" ^^ {
+        case e if e.isInstanceOf[LApp] => e.splittable = false; e
+        case e => e
+    }
+    def app: Parser[LExp] = (lvar | parenexp) ~ exp ^^ {
+        case e1 ~ e2 => e2 match {
+            case LApp(h, t) if (e2.splittable) => LApp(LApp(e1, h), t)
+            case _ => LApp(e1, e2)
+        }
+    }
     def letexp: Parser[LExp] = "let" ~ id ~ "=" ~ exp ~ "in" ~ exp ^^ {
         case "let" ~ x ~ "=" ~ e1 ~ "in" ~ e2 => LLet(x, e1, e2)
-    }
-    def app: Parser[LExp] = ("(" ~> exp <~ ")" | lvar) ~ exp ^^ {
-        case e1 ~ e2 => LApp(e1, e2)
     }
     def lam: Parser[LExp] = "/" ~ id ~ "." ~ exp ^^ {
         case "/" ~ x ~ "." ~ e => LLam(x, e)
     }
     def lvar: Parser[LExp] = id ^^ {LVar(_)}
 
-    def idRegex: Parser[String] = "[a-zA-Z_][a-zA-Z0-9_]*".r
+    /**
+      * Accept as valid identifiers any alphanumeric string (with underscores)
+      * that is not a reserved keyord.
+      */
     def reserved = Set("let", "in")
+    def idRegex: Parser[String] = "[a-zA-Z0-9_]+".r
     def id: Parser[String] = Parser(input =>
       idRegex(input).filterWithError(
         !reserved.contains(_),
