@@ -28,15 +28,21 @@ class LambdaCalcParserSpec extends FlatSpec with Matchers {
         p("let x = y in let z = q in (x z)") should be 
             (LLet("x", LVar("y"), LLet("z", LVar("q"), LApp(LVar("x"), LVar("z")))))
     }
-    // it should "parse complex expressions" in {
-    //     p("/x./y. (x y)") should be (LLam("x", LLam("y", LApp(LVar("x"), LVar("y")))))
-    //     // p("((/x.(/y.(x y) (/z.z) x)) /x.((/y. x y) (/z.z) x))") should be (
-    //     //     LApp(
-    //     //         LLam("x", LApp(LApp(LLam("y", LApp(LVar("x"), LVar("y"))), LLam("z", LVar("z"))), LVar("x"))),
-    //     //         LLam("x",LApp(LApp(LLam("y", LApp(LVar("x"), LVar("y"))), LLam("z", LVar("z"))), LVar("x")))
-    //     //     )
-    //     // )
-    // }
+    it should "parse complex expressions" in {
+        p("/x./y. (x y)") should be (LLam("x", LLam("y", LApp(LVar("x"), LVar("y")))))
+        p("/x.(/y.(x y) (/z.z) x)") should be (
+            LLam("x", LApp(LApp(LLam("y", LApp(LVar("x"), LVar("y"))), LLam("z", LVar("z"))), LVar("x")))
+        )
+        p("/x./y.(x y (/z.z x))") should be (
+            LLam("x", LLam("y", LApp(LApp(LVar("x"), LVar("y")), LApp(LLam("z", LVar("z")), LVar("x")))))
+        )
+        p("(/x.(/y.(x y) (/z.z) x) /x./y.(x y (/z.z x)))") should be (
+            LApp(
+                LLam("x", LApp(LApp(LLam("y", LApp(LVar("x"), LVar("y"))), LLam("z", LVar("z"))), LVar("x"))),
+                LLam("x", LLam("y", LApp(LApp(LVar("x"), LVar("y")), LApp(LLam("z", LVar("z")), LVar("x"))))) 
+            )
+        )
+    }
     it should "convert ASTs to strings" in {
         p(rp(LVar("x"))) should be (LVar("x"))
         p(rp(LLam("x", LVar("x")))) should be (LLam("x", LVar("x")))
