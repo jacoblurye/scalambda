@@ -46,13 +46,9 @@ class LambdaCalcInterpreter {
       case LLet(x, e1, e2) => reduce(LApp(LLam(x, e2), e1))
       case LApp(e1, e2) => e1 match {
         case LLam(x, t) => Some(subst(t, x, e2))
-        case _ => reduce(e1) match {
-          case Some(re1) => Some(LApp(re1, e2))
-          case None => reduce(e2) match {
-            case Some(re2) => Some(LApp(e1, re2))
-            case None => None
-          }
-        }
+        case _ =>
+          val res = reduce(e1).map(LApp(_, e2))
+          if (res != None) res else reduce(e2).map(LApp(e1, _))
       }
     }
   }
