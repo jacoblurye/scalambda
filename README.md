@@ -1,3 +1,3 @@
-The lambda calculus interpreter that nobody asked for. A very first attempt at thinking functionally in Scala.
+The lambda calculus interpreter that nobody asked for. A very first attempt at thinking functionally in Scala that I hope to expand and improve as I learn the language.
 
-(-- UNDER CONSTRUCTION --)
+Currently, only normal-order evaluation is supported.
