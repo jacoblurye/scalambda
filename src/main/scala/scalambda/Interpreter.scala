@@ -3,7 +3,7 @@ package scalambda
 /**
   * A normal-order interpreter for the lambda calculus.
   */
-class LambdaCalcInterpreter extends LambdaCalcParser {
+class LambdaCalcInterpreter {
 
   /** Generates unused variable id */
   private var fresh_id = -1;
@@ -65,8 +65,10 @@ class LambdaCalcInterpreter extends LambdaCalcParser {
     }
   }
 
+  val parser = new LambdaCalcParser
+
   /** Fully evaluate an input string */
   def eval(s: String): String = {
-    revparse(normal_form(parse(s)))
+    parser.revparse(normal_form(parser.parse(s)))
   }
 }
