@@ -4,9 +4,7 @@
  */
 package scalambda
 
-sealed trait LExp extends Product with Serializable {
-  var splittable: Boolean = true
-}
+sealed trait LExp extends Product with Serializable
 
 case class LVar(id: String) extends LExp
 case class LLam(id: String, e: LExp) extends LExp
