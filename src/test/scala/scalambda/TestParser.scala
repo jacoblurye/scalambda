@@ -4,7 +4,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class LambdaCalcParserSpec extends FlatSpec with Matchers {
     val parser: LambdaCalcParser = new LambdaCalcParser
-    val p = parser.parse _
+    val p = parser.noopt_parse _
     val rp = parser.revparse _
 
     "A LambdaCalcParser" should "parse variables" in {
@@ -13,6 +13,7 @@ class LambdaCalcParserSpec extends FlatSpec with Matchers {
         p("xY") should be (LVar("xY"))
         p("x_Y_9_z") should be (LVar("x_Y_9_z"))
         p("(x)") should be (LVar("x"))
+        p("1") should be (LVar("1"))
     }
     it should "parse simple applications" in {
         p("(x y)") should be (LApp(LVar("x"), LVar("y")))
@@ -49,5 +50,18 @@ class LambdaCalcParserSpec extends FlatSpec with Matchers {
         p(rp(LApp(LVar("x"), LVar("y")))) should be (LApp(LVar("x"), LVar("y")))
         p(rp(LApp(LApp(LVar("x"), LVar("y")), LLam("x", LVar("x"))))) should be
             (LApp(LApp(LVar("x"), LVar("y")), LLam("x", LVar("x"))))
+    }
+}
+
+class LibParserSpec extends FlatSpec with Matchers {
+    val parser: LibParser = new LibParser
+    val testFile = "names/testlib.lmb"
+
+    "A LibParser" should "parse definitions from files" in {
+        parser.parseFile(testFile) should be (Map[String, LExp](
+          "true" -> LLam("x", LLam("y", LVar("x"))),
+          "false" -> LLam("x", LLam("y", LVar("y"))),
+          "0" -> LLam("f", LLam("x", LVar("x")))
+        ))
     }
 }

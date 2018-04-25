@@ -1,10 +1,12 @@
 package scalambda
 
-import scala.util.parsing.combinator.RegexParsers
+import scala.util.parsing.combinator.{Parsers, RegexParsers}
+import scala.io.Source
 
-/*
- * Given a text file, yield the corresponding lambda calculus AST.
- */
+/**
+  * Given a string representing a lambda calculus express, 
+  * generate the corresponding lambda calculus AST.
+  */
 class LambdaCalcParser extends RegexParsers {
 
     /** Grammer definition */
@@ -18,12 +20,7 @@ class LambdaCalcParser extends RegexParsers {
     }
     def app: Parser[LExp] = rep1(exp) ^^ {
         case e::es => es.foldLeft(e){(func, arg) => LApp(func, arg)}
-    }
-
-    /**
-      * Accept as valid identifiers any alphanumeric string (with underscores)
-      * that is not a reserved keyord.
-      */
+    }    
     def reserved = Set("let", "in")
     def idRegex: Parser[String] = "[a-zA-Z0-9_]+".r
     def id: Parser[String] = Parser(input =>
@@ -43,10 +40,7 @@ class LambdaCalcParser extends RegexParsers {
     }
 
     def noopt_parse(expression: String): LExp = {
-        parseAll(exp, expression) match {
-            case Success(tree, _) => tree
-            case _: NoSuccess => throw new Exception("cannot parse expression " + expression)
-        }
+        parseAll(exp, expression).get
     }
 
     /** Outputs valid string given AST */
@@ -59,4 +53,21 @@ class LambdaCalcParser extends RegexParsers {
                 "let " + x + " = " + revparse(e1) + " in " + revparse(e2)
         }
     }
+}
+
+/**
+  * Given a string containing identifier definitions,
+  * generate the corresponding variable map.
+  */
+class LibParser extends LambdaCalcParser {
+  def defn: Parser[(String, LExp)] = id ~ "=" ~ exp ^^ {
+    case x ~ "=" ~ e => (x, e)
+  }
+
+  def parseFile(fname: String): Map[String, LExp] = {
+    val lines = Source.fromFile(fname).getLines.toList
+    lines.foldLeft(Map[String, LExp]()) { 
+      (map, line) => map + parse(defn, line).get
+    }
+  }
 }

@@ -5,7 +5,7 @@ import org.scalatest.{FlatSpec, Matchers}
 class InterpreterSpec extends FlatSpec with Matchers {
   val i = new LambdaCalcInterpreter
   val parser: LambdaCalcParser = new LambdaCalcParser
-  val p = parser.parse _
+  val p = parser.noopt_parse _
 
   "A LambdaCalcInterpreter" should "substitute variables in expressions" in {
     val x = LVar("x")
