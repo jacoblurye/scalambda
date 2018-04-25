@@ -66,6 +66,9 @@ class LambdaCalcInterpreter {
 
   /** Fully evaluate an input string */
   def eval(s: String): String = {
-    parser.revparse(normal_form(parser.parse(s)))
+    parser.parse(s) match {
+      case None => "Error: cannot parse expression " + s
+      case Some(e) => parser.revparse(normal_form(e))
+    }
   }
 }

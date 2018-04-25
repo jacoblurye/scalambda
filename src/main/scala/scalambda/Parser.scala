@@ -35,10 +35,17 @@ class LambdaCalcParser extends RegexParsers {
     )
 
     /** Outputs lambda calc AST given a string adhering to grammar */
-    def parse(expression: String): LExp = {
+    def parse(expression: String): Option[LExp] = {
+        parseAll(exp, expression) match {
+            case Success(tree, _) => Some(tree)
+            case _: NoSuccess => None
+        }
+    }
+
+    def noopt_parse(expression: String): LExp = {
         parseAll(exp, expression) match {
             case Success(tree, _) => tree
-            case e: NoSuccess => throw new IllegalArgumentException(e.toString())
+            case _: NoSuccess => throw new Exception("cannot parse expression " + expression)
         }
     }
 

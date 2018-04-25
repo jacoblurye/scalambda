@@ -15,7 +15,6 @@ object LambdaCalcConsole {
       case ":load" => println("LOADING!"); run
       case cmd => println("==> " + interpreter.eval(cmd)); run
     }
-    
   }
 
 }
