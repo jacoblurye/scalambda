@@ -38,18 +38,19 @@ class LambdaCalcInterpreter {
     }
   }
 
-  /** Takes one small step according to normal-order lambda calc semantics */
+  /** Takes one small step according to call-by-value lambda calc semantics */
   def reduce(exp: LExp): Option[LExp] = {
     exp match {
       case LVar(_) => None
       case LLam(x, t) => reduce(t).map(LLam(x, _))
       case LLet(x, e1, e2) => reduce(LApp(LLam(x, e2), e1))
-      case LApp(e1, e2) => e1 match {
-        case LLam(x, t) => Some(subst(t, x, e2))
-        case _ =>
-          val res = reduce(e1).map(LApp(_, e2))
-          if (res != None) res else reduce(e2).map(LApp(e1, _))
-      }
+      case LApp(LLam(x, t), e2) =>
+        val res = reduce(e2).map(LApp(LLam(x, t), _))
+        if (res != None) res else Some(subst(t, x, e2))
+      case LApp(e1, e2) =>
+        val res1 = reduce(e1).map(LApp(_, e2))
+        if (res1 != None) res1 
+        else reduce(e2).map(LApp(e1,_))
     }
   }
 
