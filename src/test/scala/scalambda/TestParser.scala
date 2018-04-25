@@ -55,7 +55,7 @@ class LambdaCalcParserSpec extends FlatSpec with Matchers {
 
 class LibParserSpec extends FlatSpec with Matchers {
     val parser: LibParser = new LibParser
-    val testFile = "names/testlib.lmb"
+    val testFile = "defs/testlib.lmb"
 
     "A LibParser" should "parse definitions from files" in {
         parser.parseFile(testFile) should be (Map[String, LExp](
