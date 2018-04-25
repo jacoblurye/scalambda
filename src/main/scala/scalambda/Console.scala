@@ -13,7 +13,7 @@ object LambdaCalcConsole {
     StdIn.readLine() match {
       case ":quit" => ()
       case ":load" => println("LOADING!"); run
-      case cmd => interpreter.eval(cmd); run
+      case cmd => println("==> " + interpreter.eval(cmd)); run
     }
     
   }
