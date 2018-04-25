@@ -65,10 +65,17 @@ class LambdaCalcInterpreter {
   val parser = new LambdaCalcParser
 
   /** Fully evaluate an input string */
-  def eval(s: String): String = {
-    parser.parse(s) match {
+  def eval(s: String, defs: Map[String, LExp] = Map()): String = {
+    parser.parse(s)match {
       case None => "Error: could not parse expression " + s
-      case Some(e) => parser.revparse(normal_form(e))
+      case Some(e) => 
+        // Wrap e in required definitions
+        val eWithDefs = defs.foldLeft(e) {
+          case (exp, (x, t)) => 
+            if (findFVs(exp)(x)) LApp(LLam(x, exp), t)
+            else exp
+        }
+        parser.revparse(normal_form(eWithDefs))
     }
   }
 }
