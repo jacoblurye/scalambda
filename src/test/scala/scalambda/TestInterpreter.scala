@@ -21,7 +21,7 @@ class InterpreterSpec extends FlatSpec with Matchers {
     i.reduce(p("((/x.x) y)")) should be (Some(p("y")))
     i.reduce(p("(y (/x.x))")) should be (None)
     i.reduce(p("((/x.x) (/y.y))")) should be (Some(p("/y.y")))
-    i.reduce(p("((/x.x) ((/y.y) z))")) should be (Some(p("((/x.x) z)")))
+    i.reduce(p("((/x.x) ((/y.y) z))")) should be (Some(p("((/y.y) z)")))
     i.reduce(p("((/x.(/z.z) x) (/y.y))")) should be (Some(p("((/z.z) (/y.y))")))
     i.reduce(p("((/x.((/z.z) (/x.x))) (/y.y))")) should be (Some(p("((/z.z) (/x.x))")))
   }

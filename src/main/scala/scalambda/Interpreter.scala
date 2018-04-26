@@ -1,5 +1,7 @@
 package scalambda
 
+import scala.collection.immutable.ListMap
+
 /**
   * A normal-order interpreter for the lambda calculus.
   */
@@ -38,16 +40,14 @@ class LambdaCalcInterpreter {
     }
   }
 
-  /** Takes one small step according to call-by-value lambda calc semantics */
+  /** Takes one small step according to call-by-name lambda calc semantics */
   def reduce(exp: LExp): Option[LExp] = {
     exp match {
       case LVar(_) => None
       case LLam(x, t) => reduce(t).map(LLam(x, _))
       case LLet(x, e1, e2) => reduce(LApp(LLam(x, e2), e1))
-      case LApp(LLam(x, t), e2) =>
-        val res = reduce(e2).map(LApp(LLam(x, t), _))
-        if (res != None) res else Some(subst(t, x, e2))
-      case LApp(e1, e2) =>
+      case LApp(LLam(x, t), e2) => Some(subst(t, x, e2))
+      case LApp(e1, e2) => 
         val res1 = reduce(e1).map(LApp(_, e2))
         if (res1 != None) res1 
         else reduce(e2).map(LApp(e1,_))
@@ -55,27 +55,43 @@ class LambdaCalcInterpreter {
   }
 
   /** Reduce an expression to its normal form */
-  def normal_form(exp: LExp): LExp = {
+  @scala.annotation.tailrec
+  var c = 0;
+  private def normal_form(exp: LExp): LExp = {
+    // FOR DEBUGGING:
+    // println("===============================")
+    // println(parser.revparse(exp))
     reduce(exp) match {
-      case Some(exp1) => normal_form(exp1)
+      case Some(exp1) => c += 1; if (c==100) exp1 else normal_form(exp1)
       case None => exp
     }
   }
 
   val parser = new LambdaCalcParser
 
-  /** Fully evaluate an input string */
-  def eval(s: String, defs: Map[String, LExp] = Map()): String = {
-    parser.parse(s)match {
-      case None => "Error: could not parse expression " + s
-      case Some(e) => 
-        // Wrap e in required definitions
-        val eWithDefs = defs.foldLeft(e) {
-          case (exp, (x, t)) => 
-            if (findFVs(exp)(x)) LApp(LLam(x, exp), t)
-            else exp
-        }
-        parser.revparse(normal_form(eWithDefs))
+  /** Replace subexpressions that have a definition with their id */
+  def toId(exp: LExp, defs: ListMap[LExp, String]): LExp = {
+    if (defs.keySet(exp)) LVar(defs(exp))
+    else exp match {
+      case LLam(x, e) => LLam(x, toId(e, defs))
+      case LApp(e1, e2) => LApp(toId(e1, defs), toId(e2, defs))
+      case _ => exp
     }
   }
+
+  /** Fully evaluate an input string */
+  def eval(s: String, defs: ListMap[String, LExp] = ListMap()): String = {
+    parser.parse(s) match {
+        case None => "Error: could not parse expression " + s
+        case Some(e) => 
+          // Wrap e in required definitions
+          val eWithDefs = defs.foldLeft(e) {
+            case (exp, (x, t)) => 
+              if (findFVs(exp)(x)) LApp(LLam(x, exp), t)
+              else exp
+          }
+          val res = normal_form(eWithDefs)
+          parser.revparse(toId(res, defs.map(_.swap)))
+      }
+    }
 }

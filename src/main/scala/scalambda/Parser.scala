@@ -1,7 +1,8 @@
 package scalambda
 
-import scala.util.parsing.combinator.{Parsers, RegexParsers}
 import scala.io.Source
+import scala.util.parsing.combinator.{Parsers, RegexParsers}
+import scala.collection.immutable.ListMap
 
 /**
   * Given a string representing a lambda calculus express, 
@@ -64,9 +65,9 @@ class LibParser extends LambdaCalcParser {
     case x ~ "=" ~ e => (x, e)
   }
 
-  def parseFile(fname: String): Map[String, LExp] = {
-    val lines = Source.fromFile(fname).getLines.toList
-    lines.foldLeft(Map[String, LExp]()) { 
+  def parseFile(fname: String): ListMap[String, LExp] = {
+    val lines = Source.fromFile(fname).getLines.toList.reverse
+    lines.foldLeft(ListMap[String, LExp]()) { 
       (map, line) => map + parse(defn, line).get
     }
   }
