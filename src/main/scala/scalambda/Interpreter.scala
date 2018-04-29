@@ -57,7 +57,7 @@ class LambdaCalcInterpreter {
   /** Reduce an expression to its normal form */
   @scala.annotation.tailrec
   var c = 0;
-  private def normal_form(exp: LExp): LExp = {
+  def normal_form(exp: LExp): LExp = {
     // FOR DEBUGGING:
     // println("===============================")
     // println(parser.revparse(exp))
