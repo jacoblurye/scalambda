@@ -26,7 +26,7 @@ object LambdaCalcConsole {
 
   val load: Command = (args: List[String]) => {
     for (fname <- args) {
-      println("Loading definitons from " + fname) 
+      println("Loading definitons from " + fname)
       definitionMap ++= loader.parseFile(fname)
     }
   }
@@ -40,7 +40,7 @@ object LambdaCalcConsole {
   def run: Unit = {
     println(header)
     repl.run
-  } 
+  }
 }
 
 object Main extends App {
