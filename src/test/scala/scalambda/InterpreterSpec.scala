@@ -3,19 +3,19 @@ package scalambda
 import org.scalatest.{FlatSpec, Matchers}
 
 class InterpreterSpec extends FlatSpec with Matchers {
-  val i = new LambdaCalcInterpreter
-  val parser: LambdaCalcParser = new LambdaCalcParser
-  val p = parser.noopt_parse _
+  val i = Interpreter
+  val parser = LambdaCalcParser
+  val p = parser.unsafeParse _
 
   "A LambdaCalcInterpreter" should "substitute variables in expressions" in {
-    val x = LVar("x")
-    val y = LVar("y")
-    val z = LVar("z")
+    val x = Var("x")
+    val y = Var("y")
+    val z = Var("z")
     i.subst(x, "x", z) should be(z)
-    i.subst(LLam("x", x), "x", z) should be(LLam("x", x))
-    i.subst(LLam("x", z), "z", y) should be(LLam("x", y))
-    i.subst(LApp(z, LLam("x", z)), "z", y) should be(LApp(y, LLam("x", y)))
-    i.subst(LApp(LLam("x", z), z), "z", y) should be(LApp(LLam("x", y), y))
+    i.subst(Lam("x", x), "x", z) should be(Lam("x", x))
+    i.subst(Lam("x", z), "z", y) should be(Lam("x", y))
+    i.subst(LApp(z, Lam("x", z)), "z", y) should be(LApp(y, Lam("x", y)))
+    i.subst(LApp(Lam("x", z), z), "z", y) should be(LApp(Lam("x", y), y))
   }
   it should "reduce expressions one small-step further if possible" in {
     i.reduce(p("((/x.x) y)")) should be(Some(p("y")))
