@@ -1,12 +1,12 @@
 package scalambda
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{FunSuite, Matchers}
 
-class LambdaCalcParserSpec extends FlatSpec with Matchers {
-  val p = LambdaCalcParser.unsafeParse _
-  val rp = LambdaCalcParser.revparse _
+class LambdaCalcParserSpec extends FunSuite with Matchers {
+  val p: String => Exp = LambdaCalcParser.parse(_).get
+  val r: Exp => String = LambdaCalcParser.revparse
 
-  "A LambdaCalcParser" should "parse variables" in {
+  test("parse variables") {
     p("x") should be(Var("x"))
     p("xy") should be(Var("xy"))
     p("xY") should be(Var("xY"))
@@ -14,61 +14,60 @@ class LambdaCalcParserSpec extends FlatSpec with Matchers {
     p("(x)") should be(Var("x"))
     p("1") should be(Var("1"))
   }
-  it should "parse simple applications" in {
-    p("(x y)") should be(LApp(Var("x"), Var("y")))
-    p("(x y z)") should be(LApp(LApp(Var("x"), Var("y")), Var("z")))
-    p("(((x)) ((y)))") should be(LApp(Var("x"), Var("y")))
-    p("(a (b c))") should be(LApp(Var("a"), LApp(Var("b"), Var("c"))))
+  test("simple applications") {
+    p("(x y)") should be(App(Var("x"), Var("y")))
+    p("(x y z)") should be(App(App(Var("x"), Var("y")), Var("z")))
+    p("(((x)) ((y)))") should be(App(Var("x"), Var("y")))
+    p("(a (b c))") should be(App(Var("a"), App(Var("b"), Var("c"))))
   }
-  it should "parse simple lambda functions" in {
+  test("simple lambda functions") {
     p("/x. x") should be(Lam("x", Var("x")))
   }
-  it should "parse simple let expressions" in {
+  test("simple let expressions") {
     p("let x = /y.y in x") should be(Let("x", Lam("y", Var("y")), Var("x")))
     p("let x = y in let z = q in (x z)") should be
-    (Let("x", Var("y"), Let("z", Var("q"), LApp(Var("x"), Var("z")))))
+    Let("x", Var("y"), Let("z", Var("q"), App(Var("x"), Var("z"))))
   }
-  it should "parse complex expressions" in {
-    p("/x./y. (x y)") should be(Lam("x", Lam("y", LApp(Var("x"), Var("y")))))
+  test("complex expressions") {
+    p("/x./y. (x y)") should be(Lam("x", Lam("y", App(Var("x"), Var("y")))))
     p("/x.(/y.(x y) (/z.z) x)") should be(
       Lam("x",
-          LApp(LApp(Lam("y", LApp(Var("x"), Var("y"))), Lam("z", Var("z"))),
-               Var("x")))
+          App(App(Lam("y", App(Var("x"), Var("y"))), Lam("z", Var("z"))),
+              Var("x")))
     )
     p("/x./y.(x y (/z.z x))") should be(
       Lam("x",
           Lam("y",
-              LApp(LApp(Var("x"), Var("y")),
-                   LApp(Lam("z", Var("z")), Var("x")))))
+              App(App(Var("x"), Var("y")), App(Lam("z", Var("z")), Var("x")))))
     )
     p("(/x.(/y.(x y) (/z.z) x) /x./y.(x y (/z.z x)))") should be(
-      LApp(
+      App(
         Lam("x",
-            LApp(LApp(Lam("y", LApp(Var("x"), Var("y"))), Lam("z", Var("z"))),
-                 Var("x"))),
+            App(App(Lam("y", App(Var("x"), Var("y"))), Lam("z", Var("z"))),
+                Var("x"))),
         Lam("x",
             Lam("y",
-                LApp(LApp(Var("x"), Var("y")),
-                     LApp(Lam("z", Var("z")), Var("x")))))
+                App(App(Var("x"), Var("y")),
+                    App(Lam("z", Var("z")), Var("x")))))
       )
     )
   }
-  it should "convert ASTs to strings" in {
-    p(rp(Var("x"))) should be(Var("x"))
-    p(rp(Lam("x", Var("x")))) should be(Lam("x", Var("x")))
-    p(rp(LApp(Var("x"), Var("y")))) should be(LApp(Var("x"), Var("y")))
-    p(rp(LApp(LApp(Var("x"), Var("y")), Lam("x", Var("x"))))) should be
-    LApp(LApp(Var("x"), Var("y")), Lam("x", Var("x")))
+  test("reverse parsing") {
+    p(r(Var("x"))) should be(Var("x"))
+    p(r(Lam("x", Var("x")))) should be(Lam("x", Var("x")))
+    p(r(App(Var("x"), Var("y")))) should be(App(Var("x"), Var("y")))
+    p(r(App(App(Var("x"), Var("y")), Lam("x", Var("x"))))) should be
+    App(App(Var("x"), Var("y")), Lam("x", Var("x")))
   }
 
-  it should "parse definitions from files" in {
-    val testFile = "defs/testlib.lmb"
+  test("definition loading") {
+    val path = getClass.getResource("/testlib.lmb").getPath
 
-    LambdaCalcParser.parseDefinitionFile(testFile) should be(
-      Map[String, Exp](
-        "true" -> Lam("x", Lam("y", Var("x"))),
-        "false" -> Lam("x", Lam("y", Var("y"))),
-        "0" -> Lam("f", Lam("x", Var("x")))
-      ))
+    LambdaCalcParser.loadDefinitionsFile(path) should contain theSameElementsAs
+      Seq[(String, Exp)](
+        ("true", Lam("x", Lam("y", Var("x")))),
+        ("false", Lam("x", Lam("y", Var("y")))),
+        ("0", Lam("f", Lam("x", Var("x"))))
+      )
   }
 }

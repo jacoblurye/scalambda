@@ -4,8 +4,19 @@ import scala.io.Source
 import scala.util.parsing.combinator.RegexParsers
 
 /**
-  * Given a string representing a lambda calculus expression,
-  * generate the corresponding lambda calculus AST.
+  * Parse a string representation of a lambda calculus expression
+  * to its corresponding lambda calculus abstract syntax tree.
+  *
+  * Implements the grammar:
+  * {{{
+  * <expression> ::= <variable> | <lambda> | <letexp> | "(" <app> ")"
+  * <app>        ::= <expression> <expression>
+  * <lambda>     ::= "/" <id> "." <expression>
+  * <letexp>     ::= "let" <id> "=" <expression> "in" <expression>
+  * <variable>   ::= <id>
+  * <id>         ::= "a" | ... | "z" | "A" | ... | "Z" | "0" | ... | "9 | "_"  // with reserved keyword "let" and "in"
+  * }}}
+  *
   */
 class LambdaCalcParsers extends RegexParsers {
   def expression: Parser[Exp] = variable | lambda | letexp | "(" ~> app <~ ")"
@@ -20,9 +31,9 @@ class LambdaCalcParsers extends RegexParsers {
   def app: Parser[Exp] = rep1(expression) ^^ {
     case e :: es =>
       es.foldLeft(e) { (func, arg) =>
-        LApp(func, arg)
+        App(func, arg)
       }
-    case nil => ??? // TODO: resolve this
+    case nil => ??? // TODO: fail with "encountered empty application"
   }
   def reserved: Set[String] = Set("let", "in")
   def idRegex: Parser[String] = "[a-zA-Z0-9_]+".r
@@ -35,7 +46,7 @@ class LambdaCalcParsers extends RegexParsers {
           input
       ))
 
-  def defn: Parser[(String, Exp)] = id ~ "=" ~ expression ^^ {
+  def definition: Parser[(String, Exp)] = id ~ "=" ~ expression ^^ {
     case x ~ "=" ~ e => (x, e)
   }
 
@@ -43,17 +54,18 @@ class LambdaCalcParsers extends RegexParsers {
 
 object LambdaCalcParser extends LambdaCalcParsers {
 
-  /** Outputs valid string given AST */
+  /** Outputs the string representation of an expression */
   def revparse(exp: Exp): String = {
     exp match {
-      case Var(x)       => x
-      case Lam(x, e)    => "/" + x + "." + revparse(e)
-      case LApp(e1, e2) => "(" + revparse(e1) + " " + revparse(e2) + ")"
+      case Var(x)      => x
+      case Lam(x, e)   => s"/$x.${revparse(e)}"
+      case App(e1, e2) => s"(${revparse(e1)} ${revparse(e2)})"
       case Let(x, e1, e2) =>
-        "let " + x + " = " + revparse(e1) + " in " + revparse(e2)
+        s"let $x = ${revparse(e1)} in ${revparse(e2)}"
     }
   }
 
+  /** Attempts to parse a string input into an expression */
   def parse(input: String): Option[Exp] = {
     parseAll(expression, input) match {
       case Success(tree, _) => Some(tree)
@@ -61,12 +73,16 @@ object LambdaCalcParser extends LambdaCalcParsers {
     }
   }
 
-  def unsafeParse(input: String): Exp = parse(input).get
-
-  def parseDefinitionFile(fname: String): Map[String, Exp] = {
-    val lines = Source.fromFile(fname).getLines.toList.reverse
-    lines.foldLeft(Map.empty[String, Exp]) { (map, line) =>
-      map + parse(defn, line).get
+  /** Load identifier definitions from a file.
+    *
+    * @param path location of definition file.
+    * @return a sequence of tuples containing identifiers and
+    *         their parsed definitions.
+    */
+  def loadDefinitionsFile(path: String): Seq[(String, Exp)] = {
+    val lines = Source.fromFile(path).getLines.toList.reverse
+    lines.foldLeft(Seq.empty[(String, Exp)]) { (defs, line) =>
+      defs :+ parse(definition, line).get
     }
   }
 }

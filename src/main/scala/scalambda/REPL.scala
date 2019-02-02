@@ -1,25 +1,29 @@
 package scalambda
 
-import scala.io.StdIn._
+import scala.io.StdIn.readLine
+
+object REPLRunner extends scala.App {
+  REPL.run
+}
 
 object REPL {
-  private val definitionMap =
-    scala.collection.mutable.Map.empty[String, Exp]
 
-  private case class Command(f: Seq[String] => Unit, help: String)
+  private type CommandFunc = Seq[String] => Unit
+  private case class Command(f: CommandFunc, help: String)
 
-  private val load = (args: Seq[String]) =>
-    args.foreach(fname => {
-      println("Loading definitons from " + fname)
-      definitionMap ++= LambdaCalcParser.parseDefinitionFile(fname)
+  private var definitions = Seq.empty[(String, Exp)]
+  private val load: CommandFunc = args =>
+    args.foreach(path => {
+      println(s"Loading definitions from $path")
+      definitions ++= LambdaCalcParser.loadDefinitionsFile(path)
     })
 
-  private val quit = (_: Seq[String]) => {
+  private val quit: CommandFunc = _ => {
     println("bye!")
     sys.exit(0)
   }
 
-  private val help = (_: Seq[String]) => {
+  private val help: CommandFunc = _ => {
     commands.foreach {
       case (name, Command(_, helpStr)) =>
         println(s":$name\t\t$helpStr")
@@ -47,10 +51,9 @@ object REPL {
         val splitCommand = cmdAndArgs.drop(1).split(" +")
         exec(splitCommand.head, splitCommand.tail)
       case expr =>
-        val res = Interpreter.eval(expr, definitionMap.toMap)
+        val res = Interpreter.eval(expr, definitions)
         if (res != "") println(res)
     }
     run
   }
-
 }
