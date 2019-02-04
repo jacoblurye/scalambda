@@ -113,7 +113,7 @@ case class App(e1: Exp, e2: Exp) extends Exp {
   }
 }
 
-/** A let-expression, e.g. "let x = 1 in ((\y. y) x)".
+/** A let-expression, e.g. "let x = 1 in ((/y. y) x)".
   *
   * @param id the identifier being bound to `e1`.
   * @param e1 the expression definition of `id`.
