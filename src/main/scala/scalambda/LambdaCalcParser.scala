@@ -1,6 +1,9 @@
 package scalambda
 
+import java.io.FileNotFoundException
+
 import scala.io.Source
+import scala.util.Try
 import scala.util.parsing.combinator.RegexParsers
 
 /**
@@ -18,7 +21,7 @@ import scala.util.parsing.combinator.RegexParsers
   * }}}
   *
   */
-class LambdaCalcParsers extends RegexParsers {
+trait LambdaCalcParsers extends RegexParsers {
   def expression: Parser[Exp] = variable | lambda | letexp | "(" ~> app <~ ")"
   def variable: Parser[Exp] = id ^^ { Var }
   def lambda: Parser[Exp] = "/" ~ id ~ "." ~ expression ^^ {
@@ -80,9 +83,25 @@ object LambdaCalcParser extends LambdaCalcParsers {
     *         their parsed definitions.
     */
   def loadDefinitionsFile(path: String): Seq[(String, Exp)] = {
-    val lines = Source.fromFile(path).getLines.toList.reverse
-    lines.foldLeft(Seq.empty[(String, Exp)]) { (defs, line) =>
-      defs :+ parse(definition, line).get
-    }
+    assert(path.endsWith(".lmb"), "expected file with extension \".lmb\"")
+
+    val source =
+      // Look for file in local filesystem
+      Try(Source.fromFile(path)).toOption
+        .getOrElse(
+          // Look for file on the classpath
+          Try(Source.fromResource(path)).toOption
+            .getOrElse(
+              throw new FileNotFoundException(path)
+            )
+        )
+
+    val lines =
+      Try(source.getLines).getOrElse(throw new FileNotFoundException(path))
+
+    lines
+      .foldLeft(Seq.empty[(String, Exp)]) { (defs, line) =>
+        defs :+ parse(definition, line).get
+      }
   }
 }

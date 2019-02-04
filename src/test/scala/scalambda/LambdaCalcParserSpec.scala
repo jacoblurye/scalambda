@@ -1,5 +1,7 @@
 package scalambda
 
+import java.io.FileNotFoundException
+
 import org.scalatest.{FunSuite, Matchers}
 
 class LambdaCalcParserSpec extends FunSuite with Matchers {
@@ -60,14 +62,26 @@ class LambdaCalcParserSpec extends FunSuite with Matchers {
     App(App(Var("x"), Var("y")), Lam("x", Var("x")))
   }
 
-  test("definition loading") {
-    val path = getClass.getResource("/testlib.lmb").getPath
+  test("definition loading from existing files") {
+    val absolutePath = getClass.getResource("/testlib.lmb").getPath
+    val resourcePath = "testlib.lmb"
 
-    LambdaCalcParser.loadDefinitionsFile(path) should contain theSameElementsAs
-      Seq[(String, Exp)](
-        ("true", Lam("x", Lam("y", Var("x")))),
-        ("false", Lam("x", Lam("y", Var("y")))),
-        ("0", Lam("f", Lam("x", Var("x"))))
-      )
+    val someDefs = Seq[(String, Exp)](
+      ("true", Lam("x", Lam("y", Var("x")))),
+      ("false", Lam("x", Lam("y", Var("y")))),
+      ("0", Lam("f", Lam("x", Var("x"))))
+    )
+
+    LambdaCalcParser.loadDefinitionsFile(absolutePath) should contain theSameElementsAs someDefs
+    LambdaCalcParser.loadDefinitionsFile(resourcePath) should contain allElementsOf someDefs
+  }
+
+  test("definition loading from non-existent files") {
+    an[AssertionError] shouldBe thrownBy(
+      LambdaCalcParser.loadDefinitionsFile("core.txt"))
+
+    a[FileNotFoundException] shouldBe thrownBy(
+      LambdaCalcParser.loadDefinitionsFile("nowhere.lmb")
+    )
   }
 }

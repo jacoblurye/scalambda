@@ -1,6 +1,9 @@
 package scalambda
 
+import java.io.FileNotFoundException
+
 import scala.io.StdIn.readLine
+import scala.util.{Failure, Success, Try}
 
 object REPLRunner extends scala.App {
   REPL.run
@@ -15,7 +18,10 @@ object REPL {
   private val load: CommandFunc = args =>
     args.foreach(path => {
       println(s"Loading definitions from $path")
-      definitions ++= LambdaCalcParser.loadDefinitionsFile(path)
+      Try(LambdaCalcParser.loadDefinitionsFile(path)) match {
+        case Success(definition) => definitions ++= definition
+        case Failure(e)          => println(e)
+      }
     })
 
   private val quit: CommandFunc = _ => {
@@ -26,7 +32,7 @@ object REPL {
   private val help: CommandFunc = _ => {
     commands.foreach {
       case (name, Command(_, helpStr)) =>
-        println(s":$name\t\t$helpStr")
+        println(s":$name\t$helpStr")
     }
   }
 
@@ -45,7 +51,8 @@ object REPL {
   }
 
   /** Run the REPL */
-  lazy val run: Unit = {
+  @scala.annotation.tailrec
+  def run: Unit = {
     readLine("\u03BB > ") match {
       case cmdAndArgs if cmdAndArgs.startsWith(":") =>
         val splitCommand = cmdAndArgs.drop(1).split(" +")
