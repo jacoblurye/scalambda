@@ -3,6 +3,9 @@ package scalambda
 /** A lambda calculus expression */
 sealed trait Exp {
 
+  /** Syntax string representation */
+  def repr: String
+
   /** Find the free variables in this expression.
     *
     * @param bound a [[Set]] of bound variable identifiers.
@@ -22,9 +25,10 @@ sealed trait Exp {
   def reduce: Option[Exp]
 
   /** Attempt to fully reduce this expression to its most simplified form */
-  def normalForm(maxIter: Int = 1000): Exp = {
+  def normalForm(maxIter: Int = 1000, debug: Boolean = false): Exp = {
     @scala.annotation.tailrec
     def _normalForm(exp: Exp, iter: Int = 0): Exp = {
+      if (debug) println(exp)
       exp.reduce match {
         case Some(exp1) =>
           if (iter == maxIter) exp1 else _normalForm(exp1, iter + 1)
@@ -33,6 +37,17 @@ sealed trait Exp {
     }
     _normalForm(this)
   }
+
+  /** Wrap this expression in identifier definitions */
+  private[scalambda] def withDefinitions(
+      definitions: Seq[(String, Exp)]): Exp = {
+    definitions.foldLeft(this) {
+      case (exp, (id, definition)) =>
+        // Only wrap the expression with definitions it references
+        if (exp.free().contains(id)) App(Lam(id, exp), definition)
+        else exp
+    }
+  }
 }
 
 /** A variable.
@@ -40,7 +55,7 @@ sealed trait Exp {
   * @param id string identifier associated with this variable.
   */
 case class Var(id: String) extends Exp {
-  override def toString = id
+  def repr: String = id
 
   // A variable is free if it is not bound to an expression
   // in its enclosing scope.
@@ -58,14 +73,14 @@ case class Var(id: String) extends Exp {
   * @param body expression to be evaluated when the function is applied.
   */
 case class Lam(id: String, body: Exp) extends Exp {
-  override def toString = s"/$id.$body"
+  def repr: String = s"/$id.${body.repr}"
 
   // In body, id is bound to the expression to which
   // this function is applied.
   def free(bound: Set[String]): Set[String] =
     body.free(bound + id)
 
-  // We can only safely substitute subExp for id in body
+  // We can only safely substitute subExp for id in body if
   // id is not a free variable of subExp. If id is in
   // subExp's free variables, we rewrite this function
   // in terms of a fresh identifier to avoid unintended
@@ -97,7 +112,7 @@ object Lam {
   * @param e2 applicatee.
   */
 case class App(e1: Exp, e2: Exp) extends Exp {
-  override def toString = s"($e1 $e2)"
+  def repr: String = s"(${e1.repr} ${e2.repr})"
 
   def free(bound: Set[String]): Set[String] =
     e1.free(bound) union e2.free(bound)
@@ -126,7 +141,7 @@ case class App(e1: Exp, e2: Exp) extends Exp {
   * @param e2 the expression in which to substitute `e1` for `id`.
   */
 case class Let(id: String, e1: Exp, e2: Exp) extends Exp {
-  override def toString = s"let $id = $e1 in $e2"
+  def repr: String = s"let $id = ${e1.repr} in ${e2.repr}"
 
   // Let-statements are just syntactic sugar for function application.
   private val rep = App(Lam(id, e2), e1)

@@ -58,7 +58,7 @@ trait LambdaCalcParsers extends RegexParsers {
 object LambdaCalcParser extends LambdaCalcParsers {
 
   /** Outputs the string representation of an expression */
-  def revparse(exp: Exp): String = exp.toString
+  def reverseParse(exp: Exp): String = exp.repr
 
   /** Attempts to parse a string input into an expression */
   def parse(input: String): Option[Exp] = {
@@ -93,7 +93,8 @@ object LambdaCalcParser extends LambdaCalcParsers {
 
     lines
       .foldLeft(Seq.empty[(String, Exp)]) { (defs, line) =>
-        defs :+ parse(definition, line).get
+        val (id, exp) = parse(definition, line).get
+        defs :+ (id, exp.withDefinitions(defs))
       }
   }
 }

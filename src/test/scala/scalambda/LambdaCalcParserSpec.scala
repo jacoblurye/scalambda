@@ -6,7 +6,7 @@ import org.scalatest.{FunSuite, Matchers}
 
 class LambdaCalcParserSpec extends FunSuite with Matchers {
   val p: String => Exp = LambdaCalcParser.parse(_).get
-  val r: Exp => String = LambdaCalcParser.revparse
+  val r: Exp => String = LambdaCalcParser.reverseParse
 
   test("parse variables") {
     p("x") should be(Var("x"))

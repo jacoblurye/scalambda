@@ -3,7 +3,7 @@ package scalambda
 import org.scalatest.{FunSuite, Matchers}
 
 class ExpSpec extends FunSuite with Matchers {
-  val r: Exp => String = LambdaCalcParser.revparse
+  val r: Exp => String = LambdaCalcParser.reverseParse
   val p: String => Exp = LambdaCalcParser.parse(_).get
 
   test("free") {
@@ -59,5 +59,19 @@ class ExpSpec extends FunSuite with Matchers {
               let 1 = /f./x.(f x) in (succ 1)""").normalForm()) shouldBe "/f./x.(f (f x))"
     r(p("""let plus = /m./n./f./x.((m f) (n f x)) in
               let 1 = /f./x.(f x) in (plus 1 1)""").normalForm()) shouldBe "/f./x.(f (f x))"
+  }
+
+  test("normalForm on definitions") {
+    val defs = LambdaCalcParser.loadDefinitionsFile("core.lmb").toMap
+
+    App(defs("iszero"), defs("0")).normalForm() shouldBe defs("true")
+    App(defs("iszero"), defs("1")).normalForm() shouldBe defs("false")
+    App(defs("pred"), defs("2")).normalForm() shouldBe defs("1")
+    App(App(defs("succ"), defs("1")), defs("1"))
+      .normalForm(debug = true) shouldBe defs("1")
+    App(defs("times"), defs("0")).normalForm() shouldBe defs("1")
+    App(defs("fact"), defs("1")).normalForm() shouldBe defs("1")
+    App(defs("fact"), defs("2")).normalForm() shouldBe defs("2")
+    App(defs("fact"), defs("3")).normalForm() shouldBe defs("6")
   }
 }

@@ -13,21 +13,15 @@ object Interpreter {
     */
   def eval(s: String, defs: Seq[(String, Exp)] = Seq.empty): String = {
     LambdaCalcParser.parse(s) match {
-      case None    => "Error: could not parse expression " + s
+      case None => "Error: could not parse expression " + s
       case Some(e) =>
-        // Wrap e in required definitions
-        val eWithDefs = defs.foldLeft(e) {
-          case (exp, (x, t)) =>
-            if (exp.free().contains(x)) App(Lam(x, exp), t)
-            else exp
-        }
-        val res = eWithDefs.normalForm()
-        LambdaCalcParser.revparse(toId(res, defs.map(_.swap).toMap))
+        val res = e.withDefinitions(defs).normalForm()
+        LambdaCalcParser.reverseParse(toId(res, defs.map(_.swap).toMap))
     }
   }
 
   // Replace occurrences of definitions with their identifiers
-  private def toId(exp: Exp, defs: Map[Exp, String]): Exp = {
+  private[scalambda] def toId(exp: Exp, defs: Map[Exp, String]): Exp = {
     if (defs.keySet(exp)) Var(defs(exp))
     else
       exp match {
