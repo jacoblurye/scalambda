@@ -20,7 +20,9 @@ Run the REPL:
 ```bash
 $ scalambda
 λ > (/x.(x x) y)
-(y y)
+y y
+λ > let ident = /u.u in (ident x)
+x
 ```
 Load definitions from `.lmb` files. A library of useful definitions, `core.lmb`, 
 comes with the package (but you can make your own!):
@@ -29,5 +31,7 @@ comes with the package (but you can make your own!):
 Loading definitions from core.lmb
 λ > (plus 1 1)
 2
+λ > (fact 4)
+24
 ```
 Print all available REPL commands with `:help`.
