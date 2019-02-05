@@ -40,6 +40,8 @@ sealed trait Exp {
   * @param id string identifier associated with this variable.
   */
 case class Var(id: String) extends Exp {
+  override def toString = id
+
   // A variable is free if it is not bound to an expression
   // in its enclosing scope.
   def free(bound: Set[String]): Set[String] =
@@ -56,6 +58,8 @@ case class Var(id: String) extends Exp {
   * @param body expression to be evaluated when the function is applied.
   */
 case class Lam(id: String, body: Exp) extends Exp {
+  override def toString = s"/$id.$body"
+
   // In body, id is bound to the expression to which
   // this function is applied.
   def free(bound: Set[String]): Set[String] =
@@ -93,6 +97,8 @@ object Lam {
   * @param e2 applicatee.
   */
 case class App(e1: Exp, e2: Exp) extends Exp {
+  override def toString = s"($e1 $e2)"
+
   def free(bound: Set[String]): Set[String] =
     e1.free(bound) union e2.free(bound)
 
@@ -120,6 +126,8 @@ case class App(e1: Exp, e2: Exp) extends Exp {
   * @param e2 the expression in which to substitute `e1` for `id`.
   */
 case class Let(id: String, e1: Exp, e2: Exp) extends Exp {
+  override def toString = s"let $id = $e1 in $e2"
+
   // Let-statements are just syntactic sugar for function application.
   private val rep = App(Lam(id, e2), e1)
 

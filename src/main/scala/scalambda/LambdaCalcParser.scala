@@ -58,15 +58,7 @@ trait LambdaCalcParsers extends RegexParsers {
 object LambdaCalcParser extends LambdaCalcParsers {
 
   /** Outputs the string representation of an expression */
-  def revparse(exp: Exp): String = {
-    exp match {
-      case Var(x)      => x
-      case Lam(x, e)   => s"/$x.${revparse(e)}"
-      case App(e1, e2) => s"(${revparse(e1)} ${revparse(e2)})"
-      case Let(x, e1, e2) =>
-        s"let $x = ${revparse(e1)} in ${revparse(e2)}"
-    }
-  }
+  def revparse(exp: Exp): String = exp.toString
 
   /** Attempts to parse a string input into an expression */
   def parse(input: String): Option[Exp] = {
