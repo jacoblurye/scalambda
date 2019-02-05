@@ -25,14 +25,12 @@ sealed trait Exp {
   def reduce: Option[Exp]
 
   /** Attempt to fully reduce this expression to its most simplified form */
-  def normalForm(maxIter: Int = 1000, debug: Boolean = false): Exp = {
+  def normalForm(): Exp = {
     @scala.annotation.tailrec
     def _normalForm(exp: Exp, iter: Int = 0): Exp = {
-      if (debug) println(exp)
       exp.reduce match {
-        case Some(exp1) =>
-          if (iter == maxIter) exp1 else _normalForm(exp1, iter + 1)
-        case None => exp
+        case Some(exp1) => _normalForm(exp1, iter + 1)
+        case None       => exp
       }
     }
     _normalForm(this)
