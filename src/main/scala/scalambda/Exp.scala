@@ -8,7 +8,7 @@ sealed trait Exp {
 
   /** Find the free variables in this expression.
     *
-    * @param bound a [[Set]] of bound variable identifiers.
+    * @param bound a `Set` of bound variable identifiers.
     * @return the set of free variables in this expression.
     * */
   def free(bound: Set[String] = Set.empty): Set[String]
