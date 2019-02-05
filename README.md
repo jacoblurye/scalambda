@@ -5,7 +5,7 @@ An interpreter for Church's lambda calculus extended with `let` expressions.
 Currently, only a call-by-name substitution semantics is supported. Call-by-value to come.
 
 ## Installation
-1) Download the project and cd into it.
+1) Download the project and cd into it:
     ```bash
     $ git clone git@github.com:jacoblurye/scalambda.git
     $ cd scalambda
