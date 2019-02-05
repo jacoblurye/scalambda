@@ -24,6 +24,12 @@ object REPL {
       }
     })
 
+  private val defs: CommandFunc = _ => {
+    definitions.foreach {
+      case (name, exp) => println(s"$name = ${exp.repr}")
+    }
+  }
+
   private val quit: CommandFunc = _ => {
     println("bye!")
     sys.exit(0)
@@ -38,6 +44,7 @@ object REPL {
 
   private val commands: Map[String, Command] = Map[String, Command](
     "load" -> Command(load, "import identifier definitions from file"),
+    "defs" -> Command(defs, "list currently available identifier definitions"),
     "quit" -> Command(quit, "exit the repl"),
     "help" -> Command(help, "display this help message")
   )
