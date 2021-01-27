@@ -2,7 +2,7 @@
 
 An interpreter for Church's lambda calculus extended with `let` expressions.
 
-Currently, only a call-by-name substitution semantics is supported. Call-by-value to come.
+Currently, only a call-by-name substitution semantics is supported.
 
 ## Installation
 1) Download the project and cd into it:
